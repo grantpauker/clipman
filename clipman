@@ -3,26 +3,56 @@
 CACHE_FOLDER=~/.local/share/clipman
 history_file=$CACHE_FOLDER/clip_history
 
+# error message when the history file does not exist
+error_no_history(){
+	>&2 echo "error: history file ($history_file) does not exist"
+	exit 1
+}
+
+# error message when the clip does not exist
+error_no_clip(){
+	>&2 echo "error: clip ($1) does not exist"
+	exit 1
+}
+
+# get the total number of clips in the history file
+get_num_clips(){
+	wc -l $history_file | awk '{print $1}'
+}
+
+# check if a clip index exists
+check_clip_bounds(){
+	! ([[ "$1" -lt "$(get_num_clips)" ]] &&  [[ "$1" -ge "0" ]])
+}
+
+# check if the history file exists
+check_hisotry_exists(){
+	! [[ -f "$history_file" ]]
+}
 
 # get checksum of nth clip
 get_checksum(){
+	check_clip_bounds $1 
 	checksum="$(awk 'NR=='$1'+1{print $1}' $history_file)"
 	echo $checksum
 }
 
 # get nth clip
 get_index(){
+	check_clip_bounds $1 && error_no_clip $1
 	checksum=$(get_checksum $1)
 	echo -n "$(cat $CACHE_FOLDER/$checksum.clip)"
 }
 
 # print clips formatted for dmenu
 format_dmenu(){
+	check_hisotry_exists && error_no_history
 	awk '{$1=""; print NR-1 ":" $0}' $history_file 
 }
 
 # delete nth clip from history
 delete_index(){
+	check_clip_bounds $1 && error_no_clip $1
 	checksum=$(get_checksum $1)
 	sed -i "$(($1+1))d" $history_file
 	rm $CACHE_FOLDER/$checksum.clip
@@ -32,6 +62,7 @@ delete_index(){
 clear_history(){
 	rm $CACHE_FOLDER/*.clip
 	rm $history_file
+	echo "Cleared history"
 }
 
 # print help menu
@@ -40,7 +71,7 @@ help(){
 }
 
 set -e
-set -u
+# set -u
 set -o pipefail
 
 while getopts 'g:md:ch' OPTION; do
