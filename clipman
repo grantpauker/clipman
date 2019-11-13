@@ -46,7 +46,6 @@ get_index(){
 
 # print clips formatted for dmenu
 format_dmenu(){
-	check_hisotry_exists && error_no_history
 	awk '{$1=""; print NR-1 ":" $0}' $history_file 
 }
 
@@ -73,6 +72,8 @@ help(){
 set -e
 # set -u
 set -o pipefail
+
+check_hisotry_exists && error_no_history
 
 while getopts 'g:md:ch' OPTION; do
 	case "$OPTION" in
