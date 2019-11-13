@@ -1,0 +1,2 @@
+# clipman
+simple clipboard manager
