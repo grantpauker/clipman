@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+CACHE_FOLDER=~/.local/share/clipman
+[ ! -d $CACHE_FOLDER ] && mkdir $CACHE_FOLDER
+
+while :; do 
+	clipnotify
+
+	clipboard="$(xclip -out -sel clip)"
+
+	checksum="$(cksum <<< $clipboard | awk '{print $1}')"
+
+	if [ ! -f "$CACHE_FOLDER/$checksum.clip" ]; then
+		oneline="$(tr '\r\n' ' ' <<< $clipboard)"
+		echo "$checksum $oneline" >> $CACHE_FOLDER/clip_history
+		echo "$clipboard" >> $CACHE_FOLDER/$checksum.clip
+	fi
+done

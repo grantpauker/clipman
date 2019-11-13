@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+CACHE_FOLDER=~/.local/share/clipman
+history_file=$CACHE_FOLDER/clip_history
+
+
+# get checksum of nth clip
+get_checksum(){
+	checksum="$(awk 'NR=='$1'+1{print $1}' $history_file)"
+	echo $checksum
+}
+
+# get nth clip
+get_index(){
+	checksum=$(get_checksum $1)
+	echo -n "$(cat $CACHE_FOLDER/$checksum.clip)"
+}
+
+# print clips formatted for dmenu
+format_dmenu(){
+	awk '{$1=""; print NR-1 ":" $0}' $history_file 
+}
+
+# delete nth clip from history
+delete_index(){
+	checksum=$(get_checksum $1)
+	sed -i "$(($1+1))d" $history_file
+	rm $CACHE_FOLDER/$checksum.clip
+}
+
+# clear all clips from historys
+clear_history(){
+	rm $CACHE_FOLDER/*.clip
+	rm $history_file
+}
+
+# print help menu
+help(){
+	echo "script usage: $(basename $0) [-g somevalue] [-m] [-d somevalue] [-c] [-h]" >&2
+}
+
+set -e
+set -u
+set -o pipefail
+
+while getopts 'g:md:ch' OPTION; do
+	case "$OPTION" in
+		g)
+			index="$OPTARG"
+			get_index $index
+			;;
+		m)
+			format_dmenu
+			;;
+		d)
+			index="$OPTARG"
+			delete_index $index
+			;;
+		c)
+			clear_history
+			;;
+		h)
+			help
+			;;
+		?)
+			help
+			exit 1
+			;;
+	esac
+done
+if (( $OPTIND == 1 )); then
+	help
+else
+	shift "$(($OPTIND -1))"
+fi

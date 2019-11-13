@@ -1,4 +1,2 @@
 #!/usr/bin/env bash
-checksum="$(awk 'NR=='$1'{print $1}' clip_history)"
-cat $checksum.clip
 
