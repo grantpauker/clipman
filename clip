@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+while :; do 
+	clipnotify
+	clipboard="$(xclip -out -sel clip)"
+	checksum="$(cksum <<< $clipboard | awk '{print $1}')"
+	if [ ! -f "$checksum.clip" ]; then
+		oneline="$(tr '\r\n' ' ' <<< $clipboard)"
+		echo "$checksum $oneline" >> clip_history
+		echo "$clipboard" >> "$checksum.clip"
+		echo new
+	fi
+done

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+line_num="$(awk '{$1=""; print NR-1 ":" $0}' clip_history | dmenu -i -l 10 | awk '{print substr($1, 1, length($1)-1)}')"
+checksum="$(awk 'NR=='$line_num'+1{print $1}' clip_history)"
+xclip -sel clip $checksum.clip
+
